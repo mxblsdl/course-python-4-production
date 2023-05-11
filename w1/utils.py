@@ -34,14 +34,14 @@ class Stats:
         self.calculate_75()
 
         return {
-            'min': self._min,
-            'max': self._max,
-            'mean': self._mean,
-            'median': self._median,
-            'std': self._std,
-            '25': self._25,
-            '50': self._50,
-            '75': self._75
+            "min": self._min,
+            "max": self._max,
+            "mean": self._mean,
+            "median": self._median,
+            "std": self._std,
+            "25": self._25,
+            "50": self._50,
+            "75": self._75,
         }
 
     def update_min(self, val: float) -> None:
@@ -111,13 +111,23 @@ class DataReader:
             'Country': 'Russia',
         }
         """
-    ######################################## YOUR CODE HERE ##################################################
+        ######################################## YOUR CODE HERE ##################################################
+        for row in open(self._fp, "r"):
+            data = row.strip("\n").split(",")
+            yield {
+                "StockCode": data[0],
+                "Description": data[1],
+                "UnitPrice": data[2],
+                "Quantity": data[3],
+                "TotalPrice": data[4],
+                "Country": data[5],
+                "InvoiceNo": data[6],
+                "Date": data[7],
+            }
 
     ######################################## YOUR CODE HERE ##################################################
-
     def get_file_path(self):
         return self._fp
 
     def get_column_names(self):
         return self._col_names
-

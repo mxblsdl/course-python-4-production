@@ -28,7 +28,7 @@ def test_data_reader():
 
     # check if row is a dict
     assert isinstance(row_1, dict)
-
+    print(row_1)
     # check if the row contains all the required data
     assert all([(col_name in row_1.keys()) for col_name in col_names])
 

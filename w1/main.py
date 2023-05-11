@@ -1,16 +1,18 @@
 import constants
-from w1.data_processor import DataProcessor
+from data_processor import DataProcessor
 from pprint import pprint
 from typing import Dict
 from tqdm import tqdm
 import os
 import argparse
+
 from global_utils import get_file_name, make_dir, plot_sales_data
 from datetime import datetime
 import json
 
 
 CURRENT_FOLDER_NAME = os.path.dirname(os.path.abspath(__file__))
+print(CURRENT_FOLDER_NAME)
 
 
 def revenue_per_region(dp: DataProcessor) -> Dict:
@@ -44,54 +46,125 @@ def revenue_per_region(dp: DataProcessor) -> Dict:
     }
     """
     ######################################## YOUR CODE HERE ##################################################
+    # dp.data_reader
+    gen = iter(dp.data_reader)
+
+    China = 0
+    France = 0
+    Germany = 0
+    India = 0
+    Italy = 0
+    Japan = 0
+    Russia = 0
+    United_Kingdom = 0
+    United_States = 0
+
+    for row in gen:
+        match row["Country"]:
+            case "China":
+                China += float(row["TotalPrice"])
+            case "France":
+                France += float(row["TotalPrice"])
+            case "Germany":
+                Germany += float(row["TotalPrice"])
+            case "India":
+                India += float(row["TotalPrice"])
+            case "Italy":
+                Italy += float(row["TotalPrice"])
+            case "Japan":
+                Japan += float(row["TotalPrice"])
+            case "Russia":
+                Russia += float(row["TotalPrice"])
+            case "United Kingdom":
+                United_Kingdom += float(row["TotalPrice"])
+            case "United States":
+                United_States += float(row["TotalPrice"])
+            case _:
+                pass
+
+    return {
+        "China": China,
+        "France": France,
+        "Germany": Germany,
+        "India": India,
+        "Italy": Italy,
+        "Japan": Japan,
+        "Russia": Russia,
+        "United Kingdom": United_Kingdom,
+        "United States": United_States,
+    }
 
     ######################################## YOUR CODE HERE ##################################################
-
 
 def get_sales_information(file_path: str) -> Dict:
     # Initialize
     dp = DataProcessor(file_path=file_path)
 
     # print stats
-    dp.describe(column_names=[constants.OutDataColNames.UNIT_PRICE, constants.OutDataColNames.TOTAL_PRICE])
+    dp.describe(
+        column_names=[
+            constants.OutDataColNames.UNIT_PRICE,
+            constants.OutDataColNames.TOTAL_PRICE,
+        ]
+    )
 
     # return total revenue and revenue per region
     return {
-        'total_revenue': dp.aggregate(column_name=constants.OutDataColNames.TOTAL_PRICE),
-        'revenue_per_region': revenue_per_region(dp),
-        'file_name': get_file_name(file_path)
+        "total_revenue": dp.aggregate(
+            column_name=constants.OutDataColNames.TOTAL_PRICE
+        ),
+        "revenue_per_region": revenue_per_region(dp),
+        "file_name": get_file_name(file_path),
     }
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Choose from one of these : [tst|sml|bg]")
-    parser.add_argument('--type',
-                        default='tst',
-                        choices=['tst', 'sml', 'bg'],
-                        help='Type of data to generate')
+    parser = argparse.ArgumentParser(
+        description="Choose from one of these : [tst|sml|bg]"
+    )
+    parser.add_argument(
+        "--type",
+        default="tst",
+        choices=["tst", "sml", "bg"],
+        help="Type of data to generate",
+    )
     args = parser.parse_args()
 
-    data_folder_path = os.path.join(CURRENT_FOLDER_NAME, '..', constants.DATA_FOLDER_NAME, args.type)
-    files = [str(file) for file in os.listdir(data_folder_path) if str(file).endswith('csv')]
+    data_folder_path = os.path.join(
+        CURRENT_FOLDER_NAME, "..", constants.DATA_FOLDER_NAME, args.type
+    )
+    files = [
+        str(file) for file in os.listdir(data_folder_path) if str(file).endswith("csv")
+    ]
 
-    output_save_folder = os.path.join(CURRENT_FOLDER_NAME, '..', 'output', args.type,
-                                      datetime.now().strftime("%B %d %Y %H-%M-%S"))
+    output_save_folder = os.path.join(
+        CURRENT_FOLDER_NAME,
+        "..",
+        "output",
+        args.type,
+        datetime.now().strftime("%B %d %Y %H-%M-%S"),
+    )
     make_dir(output_save_folder)
 
     file_paths = [os.path.join(data_folder_path, file_name) for file_name in files]
-    revenue_data = [get_sales_information(file_path)
-                    for file_path in file_paths]
+    revenue_data = [get_sales_information(file_path) for file_path in file_paths]
 
     pprint(revenue_data)
 
     for yearly_data in revenue_data:
-        with open(os.path.join(output_save_folder, f'{yearly_data["file_name"]}.json'), 'w') as f:
+        with open(
+            os.path.join(output_save_folder, f'{yearly_data["file_name"]}.json'), "w"
+        ) as f:
             f.write(json.dumps(yearly_data))
 
-        plot_sales_data(yearly_revenue=yearly_data['revenue_per_region'], year=yearly_data["file_name"],
-                        plot_save_path=os.path.join(output_save_folder, f'{yearly_data["file_name"]}.png'))
+        plot_sales_data(
+            yearly_revenue=yearly_data["revenue_per_region"],
+            year=yearly_data["file_name"],
+            plot_save_path=os.path.join(
+                output_save_folder, f'{yearly_data["file_name"]}.png'
+            ),
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
-

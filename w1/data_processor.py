@@ -1,6 +1,6 @@
 from typing import List
 from pprint import pprint
-from w1.utils import Stats, DataReader
+from utils import Stats, DataReader
 from tqdm import tqdm
 import os
 
@@ -15,7 +15,9 @@ class DataProcessor:
         self._n_rows = 0
 
         self._set_col_names()
-        self.data_reader = DataReader(fp=file_path, sep=self._sep, col_names=self._col_names)
+        self.data_reader = DataReader(
+            fp=file_path, sep=self._sep, col_names=self._col_names
+        )
         self._set_n_rows()
 
     @staticmethod
@@ -36,7 +38,7 @@ class DataProcessor:
 
     def _set_col_names(self) -> None:
         with open(self._fp) as f:
-            first_row = f.readline().strip('\n')
+            first_row = f.readline().strip("\n")
 
         col_names = first_row.split(self._sep)
         self._col_names = col_names
@@ -66,7 +68,7 @@ class DataProcessor:
         Input : List[str]
         Output : Dict
 
-        This method should use the generator method assigned to seld.data_reader and return aggregate
+        This method should use the generator method assigned to self.data_reader and return aggregate
         of the column mentioned in the `column_name` variable
 
         For example if the `column_name` -> 'TotalPrice' and the file format is as below:
@@ -79,5 +81,19 @@ class DataProcessor:
         aggregate should be 105.58
         """
         ######################################## YOUR CODE HERE ##################################################
+        data_reader_gen = (row for row in self.data_reader)
+
+        # skip first row as it is the column name
+        _ = next(data_reader_gen)
+
+        # This methods is faster than below
+        v = 0
+        for d in data_reader_gen:
+            try:
+                value = d[column_name]
+            except:
+                print("Issue with aggregate method. Make sure column is numeric")
+            v += self.to_float(value)
+        return v
 
         ######################################## YOUR CODE HERE ##################################################
