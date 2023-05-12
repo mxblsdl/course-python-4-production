@@ -112,18 +112,11 @@ class DataReader:
         }
         """
         ######################################## YOUR CODE HERE ##################################################
+        
         for row in open(self._fp, "r"):
             data = row.strip("\n").split(",")
-            yield {
-                "StockCode": data[0],
-                "Description": data[1],
-                "UnitPrice": data[2],
-                "Quantity": data[3],
-                "TotalPrice": data[4],
-                "Country": data[5],
-                "InvoiceNo": data[6],
-                "Date": data[7],
-            }
+            yield  dict(zip(self._col_names, data))    
+        
 
     ######################################## YOUR CODE HERE ##################################################
     def get_file_path(self):

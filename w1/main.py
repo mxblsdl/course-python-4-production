@@ -46,53 +46,19 @@ def revenue_per_region(dp: DataProcessor) -> Dict:
     }
     """
     ######################################## YOUR CODE HERE ##################################################
-    # dp.data_reader
     gen = iter(dp.data_reader)
 
-    China = 0
-    France = 0
-    Germany = 0
-    India = 0
-    Italy = 0
-    Japan = 0
-    Russia = 0
-    United_Kingdom = 0
-    United_States = 0
+    rev_dict = dict()
+
+    next(gen)
 
     for row in gen:
-        match row["Country"]:
-            case "China":
-                China += float(row["TotalPrice"])
-            case "France":
-                France += float(row["TotalPrice"])
-            case "Germany":
-                Germany += float(row["TotalPrice"])
-            case "India":
-                India += float(row["TotalPrice"])
-            case "Italy":
-                Italy += float(row["TotalPrice"])
-            case "Japan":
-                Japan += float(row["TotalPrice"])
-            case "Russia":
-                Russia += float(row["TotalPrice"])
-            case "United Kingdom":
-                United_Kingdom += float(row["TotalPrice"])
-            case "United States":
-                United_States += float(row["TotalPrice"])
-            case _:
-                pass
-
-    return {
-        "China": China,
-        "France": France,
-        "Germany": Germany,
-        "India": India,
-        "Italy": Italy,
-        "Japan": Japan,
-        "Russia": Russia,
-        "United Kingdom": United_Kingdom,
-        "United States": United_States,
-    }
+        if row["Country"] in rev_dict.keys():
+            rev_dict[row["Country"]] += float(row["TotalPrice"])
+        else:
+            rev_dict[row["Country"]] = float(row["TotalPrice"])
+    
+    return rev_dict
 
     ######################################## YOUR CODE HERE ##################################################
 
