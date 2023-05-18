@@ -1,25 +1,44 @@
-
 # import the sqlite3 package
 import sqlite3
 from datetime import datetime
 import os
 from typing import List, Dict
-from global_utils import make_dir
+
+# from global_utils import make_dir
+from w2.utils.response_model import ProcessStatus
+
+
+def make_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
 
 
 class DB:
     def __init__(self, db_name: str = "database.sqlite") -> None:
-        self._db_save_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'database')
+        self._db_save_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)), "..", "..", "database"
+        )
         make_dir(self._db_save_path)
-        self._connection = sqlite3.connect(os.path.join(self._db_save_path, db_name),
-                                           check_same_thread=False)
-        self._table_name = 'processes'
-        self._col_order = ['process_id', 'file_name', 'file_path', 'description', 'start_time', 'end_time', 'percentage']
+        self._connection = sqlite3.connect(
+            os.path.join(self._db_save_path, db_name), check_same_thread=False
+        )
+        self._table_name = "processes"
+        self._col_order = [
+            "process_id",
+            "file_name",
+            "file_path",
+            "description",
+            "start_time",
+            "end_time",
+            "percentage",
+        ]
 
         self.create_table()
 
     @staticmethod
-    def calculate_time_taken(start_time: str, end_time: str, datetime_fmt: str) -> float:
+    def calculate_time_taken(
+        start_time: str, end_time: str, datetime_fmt: str
+    ) -> float:
         if isinstance(start_time, str) and isinstance(end_time, str):
             start_time = datetime.strptime(start_time, datetime_fmt)
             end_time = datetime.strptime(end_time, datetime_fmt)
@@ -44,12 +63,36 @@ class DB:
 
         Read more about datatypes in Sqlite here -> https://www.sqlite.org/datatype3.html
         """
-    ######################################## YOUR CODE HERE ##################################################
+        ######################################## YOUR CODE HERE ##################################################
+        self._connection.execute(
+            f"""
+                                 CREATE TABLE IF NOT EXISTS {self._table_name} (
+                                    process_id TEXT NOT NULL,
+                                    file_name TEXT DEFAULT NULL,
+                                    file_path TEXT DEFAULT NULL,
+                                    description TEXT DEFAULT NULL,
+                                    start_time TEXT NOT NULL,
+                                    end_time TEXT DEFAULT NULL,
+                                    percentage REAL DEFAULT NULL
+                                 )
+                                 """
+        )
+        self._connection.commit()
+
+        return None
 
     ######################################## YOUR CODE HERE ##################################################
 
-    def insert(self, process_id, start_time, file_name=None, file_path=None,
-               description=None, end_time=None, percentage=None) -> None:
+    def insert(
+        self,
+        process_id,
+        start_time,
+        file_name=None,
+        file_path=None,
+        description=None,
+        end_time=None,
+        percentage=None,
+    ) -> None:
         """
         Insert a record into the table
 
@@ -62,31 +105,65 @@ class DB:
         :param percentage: Percentage of process completed
         :return: None
         """
-    ######################################## YOUR CODE HERE ##################################################
+        ######################################## YOUR CODE HERE ##################################################
+        self._connection.execute(
+            f"""
+                                 INSERT INTO {self._table_name} (
+                                 process_id, 
+                                 start_time, 
+                                 file_name, 
+                                 file_path, 
+                                 description, 
+                                 end_time, 
+                                 percentage)
+                                 VALUES (?, ?, ?, ?, ?, ?, ?);
+                                 """,
+            (
+                process_id,
+                start_time,
+                file_name,
+                file_path,
+                description,
+                end_time,
+                percentage,
+            ),
+        )
+        self._connection.commit()
+
+        return None
 
     ######################################## YOUR CODE HERE ##################################################
 
     def read_all(self) -> List[Dict]:
         data = []
-        cursor = self._connection.execute(f'''SELECT {",".join(self._col_order)}
-                                              FROM {self._table_name}''')
+        cursor = self._connection.execute(
+            f"""SELECT {",".join(self._col_order)}
+                                              FROM {self._table_name}"""
+        )
         for row in cursor.fetchall():
-            row_dict = {col_name: row[ind] for ind, col_name in enumerate(self._col_order)}
-            time_taken = self.calculate_time_taken(start_time=row_dict['start_time'], end_time=row_dict['end_time'],
-                                                   datetime_fmt='%Y-%m-%d %H:%M:%S')
-            row_dict['time_taken'] = time_taken
+            row_dict = {
+                col_name: row[ind] for ind, col_name in enumerate(self._col_order)
+            }
+            time_taken = self.calculate_time_taken(
+                start_time=row_dict["start_time"],
+                end_time=row_dict["end_time"],
+                datetime_fmt="%Y-%m-%d %H:%M:%S",
+            )
+            row_dict["time_taken"] = time_taken
 
             data.append(row_dict)
 
         return data
 
     def update_end_time(self, process_id, end_time):
-        self._connection.execute(f'''UPDATE {self._table_name} SET end_time='{end_time}'
-                                     WHERE process_id='{process_id}';''')
+        self._connection.execute(
+            f"""UPDATE {self._table_name} SET end_time='{end_time}'
+                                     WHERE process_id='{process_id}';"""
+        )
 
         self._connection.commit()
 
-    def update_percentage(self, process_id, percentage):
+    def update_percentage(self, process_id, percentage) -> None:
         """
         Update percentage in a record
 
@@ -94,8 +171,33 @@ class DB:
         :param percentage: Percentage of process completed
         :return: None
         """
-    ######################################## YOUR CODE HERE ##################################################
+
+        ######################################## YOUR CODE HERE ##################################################
+        self._connection.execute(
+            f"""
+                                 UPDATE {self._table_name}
+                                 SET percentage = {percentage}
+                                 WHERE process_id = '{process_id}'
+                                 """
+        )
+
+        self._connection.commit()
+
+        return None
 
     ######################################## YOUR CODE HERE ##################################################
 
+    def get_processes(self) -> List:
+        data = []
+        cursor = self._connection.execute(
+            f"""SELECT {",".join(self._col_order)}
+                                              FROM {self._table_name}"""
+        )
 
+        for row in cursor.fetchall():
+            p = ProcessStatus(
+                **{key: row[i] for i, key in enumerate(ProcessStatus.__fields__.keys())}
+            )
+            data.append(p)
+
+        return data

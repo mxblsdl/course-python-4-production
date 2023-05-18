@@ -1,5 +1,6 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from typing import List, Dict, Union
 from threading import Thread
 import asyncio
@@ -15,6 +16,8 @@ manager = ConnectionManager()
 # start an asynchronous task that will keep broadcasting the process status to all the connected clients
 broadcast_continuous = Thread(target=asyncio.run, args=(manager.broadcast_all(),))
 broadcast_continuous.start()
+
+templates = Jinja2Templates(directory="./")
 
 
 # The below endpoint is used to create websocket connection
@@ -43,16 +46,20 @@ async def get() -> Dict:
 
     ######################################## YOUR CODE HERE ##################################################
 
+    return {"status": "ok"}
+
     ######################################## YOUR CODE HERE ##################################################
 
 
 # Below endpoint renders an HTML page
-@app.get("/")
-async def get() -> HTMLResponse:
+@app.get("/", response_class=HTMLResponse)
+async def get(request: Request) -> HTMLResponse:
     """
     should render the HTML file - index.html when a user goes to http://127.0.0.1:8000/
     """
+
     ######################################## YOUR CODE HERE ##################################################
+    return templates.TemplateResponse("index.html", {"request": request})
 
     ######################################## YOUR CODE HERE ##################################################
 
@@ -64,5 +71,8 @@ async def get() -> List[ProcessStatus]:
     Get all the records from the process table and return it using the pydantic model ProcessStatus
     """
     ######################################## YOUR CODE HERE ##################################################
+    db = DB()
+    processes = db.get_processes()
 
+    return processes
     ######################################## YOUR CODE HERE ##################################################

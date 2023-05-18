@@ -112,7 +112,8 @@ class DataReader:
         }
         """
         ######################################## YOUR CODE HERE ##################################################
-        
+
+                
         for row in open(self._fp, "r"):
             data = row.strip("\n").split(",")
             yield  dict(zip(self._col_names, data))    
