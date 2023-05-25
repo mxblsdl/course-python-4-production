@@ -156,7 +156,7 @@ def main() -> List[Dict]:
 
     st = time.time()
     n_processes = (
-        3  # you may modify this number - check out multiprocessing.cpu_count() as well
+        1  # you may modify this number - check out multiprocessing.cpu_count() as well
     )
 
     parser = argparse.ArgumentParser(
@@ -205,10 +205,11 @@ def main() -> List[Dict]:
 
     # Create args to pass to starmap
     args = [(batch, n_processes) for batch in batches]
-
+    args = [(batch, n_process) for n_process, batch in enumerate(batches)]
     # Pool method (aggregaates final result to main thread)
     with multiprocessing.Pool(processes=n_processes) as pool:
         results = pool.starmap(run, args)
+        results = flatten(results)
         pool.close()
         pool.join()
 
@@ -218,9 +219,9 @@ def main() -> List[Dict]:
     print("Overall time taken : {}".format(en - st))
 
     # should return revenue data
-    return [results]
+    return results
 
 
 if __name__ == "__main__":
     res = main()
-    pprint(res)
+    # pprint(res)
